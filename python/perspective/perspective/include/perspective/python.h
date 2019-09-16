@@ -30,6 +30,7 @@
 #include <perspective/binding.h>
 #include <perspective/exports.h>
 #include <perspective/python/accessor.h>
+#include <perspective/python/arrow.h>
 #include <perspective/python/base.h>
 #include <perspective/python/context.h>
 #include <perspective/python/fill.h>
@@ -336,6 +337,7 @@ PYBIND11_MODULE(libbinding, m)
      * Perspective defs
      */
     m.def("str_to_filter_op", &str_to_filter_op);
+    m.def("arrow_test", &arrow_test);
     m.def("make_table", &make_table_py);
     m.def("make_computed_table", &make_computed_table_py);
     m.def("make_view_zero", &make_view_ctx0);

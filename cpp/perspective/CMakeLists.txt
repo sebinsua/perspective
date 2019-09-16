@@ -1,4 +1,4 @@
-cmake_minimum_required (VERSION 2.8.11)
+cmake_minimum_required(VERSION 3.7.2)
 project (psp)
 set(CMAKE_CXX_STANDARD 14)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
@@ -29,13 +29,24 @@ function (psp_build_dep name cmake_file)
 			message(FATAL_ERROR "Build step for ${name} failed: ${result}")
 		endif()
 	endif()
-	add_subdirectory(${CMAKE_BINARY_DIR}/${name}-src
-		${CMAKE_BINARY_DIR}/${name}-build
-		EXCLUDE_FROM_ALL)
 
-	include_directories(${CMAKE_BINARY_DIR}/${name}-src/extras/${name}/include)
-	include_directories(${CMAKE_BINARY_DIR}/${name}-src/include)
-	include_directories(${CMAKE_BINARY_DIR}/${name}-src)
+	if(${name} STREQUAL arrow)
+		configure_file(${CMAKE_SOURCE_DIR}/../../cmake/arrow/CMakeLists.txt ${CMAKE_BINARY_DIR}/arrow-src/cpp/ COPYONLY)
+		configure_file(${CMAKE_SOURCE_DIR}/../../cmake/arrow/config.h ${CMAKE_BINARY_DIR}/arrow-src/cpp/src/arrow/util/ COPYONLY)
+		add_subdirectory(${CMAKE_BINARY_DIR}/arrow-src/cpp/
+			${CMAKE_BINARY_DIR}/arrow-build
+			EXCLUDE_FROM_ALL)
+
+		include_directories(${CMAKE_BINARY_DIR}/arrow-src/cpp/src/)
+	else()
+		add_subdirectory(${CMAKE_BINARY_DIR}/${name}-src
+			${CMAKE_BINARY_DIR}/${name}-build
+			EXCLUDE_FROM_ALL)
+
+		include_directories(${CMAKE_BINARY_DIR}/${name}-src/extras/${name}/include)
+		include_directories(${CMAKE_BINARY_DIR}/${name}-src/include)
+		include_directories(${CMAKE_BINARY_DIR}/${name}-src)
+	endif()
 endfunction()
 ##############################
 
@@ -256,7 +267,27 @@ elseif(PSP_CPP_BUILD OR PSP_PYTHON_BUILD)
 		include_directories( ${pybind11_INCLUDE_DIRS} )
 
 		find_package(NumPy)
+		if(NOT PYTHON_NUMPY_FOUND)
+			message(FATAL_ERROR "${Red}Numpy could not be located${ColorReset}")
+		else()
+			message(WARNING "${Cyan}Numpy found: ${PYTHON_NUMPY_INCLUDE_DIR}${ColorReset}")
+
+		endif()
 		include_directories( ${PYTHON_NUMPY_INCLUDE_DIR})
+
+		find_package(PyArrow 0.14.1 EXACT)
+		if(NOT PYTHON_PYARROW_FOUND)
+			message(FATAL_ERROR "${Red}PyArrow could not be located${ColorReset}")
+		else()
+			message(WARNING "${Cyan}PyArrow found: ${PYTHON_PYARROW_INCLUDE_DIR}${ColorReset}")
+		endif()
+		include_directories(${PYTHON_PYARROW_INCLUDE_DIR})
+		link_directories(${PYTHON_PYARROW_LIBRARY_DIR})
+
+		message("${Cyan}Building minimal Apache Arrow${ColorReset}")
+		psp_build_dep("double-conversion" "../../cmake/double-conversion.txt.in")
+		# psp_build_dep("rapidjson" "../../cmake/rapidjson.txt.in")
+		psp_build_dep("arrow" "../../cmake/arrow.txt.in")
 
 		#####################
 	endif()
@@ -264,6 +295,7 @@ endif()
 
 psp_build_dep("hopscotch" "../../cmake/hopscotch.txt.in")
 psp_build_dep("ordered-map" "../../cmake/ordered-map.txt.in")
+
 
 #####################
 
@@ -393,7 +425,6 @@ elseif(PSP_CPP_BUILD OR PSP_PYTHON_BUILD)
 		# Python extra targets #
 		########################
 		add_library(psp SHARED ${SOURCE_FILES} ${HEADER_FILES})
-
 		target_compile_definitions(psp PRIVATE PSP_ENABLE_PYTHON=1)
 		target_link_libraries(psp ${PYTHON_LIBRARIES})
 		set(CMAKE_SHARED_LIBRARY_SUFFIX .so)
@@ -404,6 +435,8 @@ elseif(PSP_CPP_BUILD OR PSP_PYTHON_BUILD)
 		target_compile_options(binding PRIVATE -Wdeprecated-declarations)
 		target_link_libraries(binding psp)
 		target_link_libraries(binding tbb)
+		target_link_libraries(binding arrow)
+		target_link_libraries(binding ${PYTHON_PYARROW_LIBRARIES})
 		target_link_libraries(binding ${PYTHON_LIBRARIES})
 		########################
 	else()

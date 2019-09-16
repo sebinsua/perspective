@@ -1,0 +1,15 @@
+cmake_minimum_required(VERSION 3.7.2)
+
+project(rapidjson-download NONE)
+
+include(ExternalProject)
+ExternalProject_Add(rapidjson
+  GIT_REPOSITORY    https://github.com/Tencent/rapidjson.git
+  GIT_TAG           v1.1.0
+  SOURCE_DIR        "${CMAKE_BINARY_DIR}/rapidjson-src"
+  BINARY_DIR        "${CMAKE_BINARY_DIR}/rapidjson-build"
+  BUILD_COMMAND     ""
+  INSTALL_COMMAND   ""
+  TEST_COMMAND      ""
+  CMAKE_ARGS  "-DRAPIDJSON_BUILD_DOC=OFF -DRAPIDJSON_BUILD_EXAMPLES=OFF -DRAPIDJSON_BUILD_TESTS=OFF -DRAPIDJSON_BUILD_THIRDPARTY_GTEST=OFF"
+)
