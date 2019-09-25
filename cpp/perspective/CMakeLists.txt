@@ -166,6 +166,7 @@ if (PSP_WASM_BUILD)
 	set(CMAKE_EXECUTABLE_SUFFIX ".js")
 	list(APPEND CMAKE_PREFIX_PATH /usr/local)
 	include_directories("/usr/local/include")
+	include_directories("/Users/r599507/homebrew/include")
 	include_directories("/boost_includes")
 
 	set(EXTENDED_FLAGS " \
@@ -295,6 +296,8 @@ endif()
 
 psp_build_dep("hopscotch" "../../cmake/hopscotch.txt.in")
 psp_build_dep("ordered-map" "../../cmake/ordered-map.txt.in")
+psp_build_dep("double-conversion" "../../cmake/double-conversion.txt.in")
+psp_build_dep("arrow" "../../cmake/arrow.txt.in")
 
 
 #####################
@@ -408,6 +411,7 @@ if (PSP_WASM_BUILD)
 	add_library(psp ${SOURCE_FILES})
 	target_compile_definitions(psp PRIVATE PSP_ENABLE_WASM=1)
 	set_target_properties(psp PROPERTIES COMPILE_FLAGS "${ASYNC_MODE_FLAGS}")
+	target_link_libraries(psp arrow)
 
 	add_executable(perspective.async src/cpp/emscripten.cpp)
 	target_link_libraries(perspective.async psp "${ASYNC_MODE_FLAGS}")
@@ -415,6 +419,7 @@ if (PSP_WASM_BUILD)
 	set_target_properties(perspective.async PROPERTIES COMPILE_FLAGS "${ASYNC_MODE_FLAGS}")
 	set_target_properties(perspective.async PROPERTIES RUNTIME_OUTPUT_DIRECTORY "./build/")
 	set_target_properties(perspective.async PROPERTIES OUTPUT_NAME "psp.async")
+
 elseif(PSP_CPP_BUILD OR PSP_PYTHON_BUILD)
 	if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 		set(CMAKE_SHARED_LIBRARY_SUFFIX .dylib)
