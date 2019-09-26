@@ -5,10 +5,11 @@
 # This file is part of the Perspective library, distributed under the terms of
 # the Apache License 2.0.  The full license can be found in the LICENSE file.
 #
+import numpy as np
+import pandas
 from math import isnan
 from ._date_validator import _PerspectiveDateValidator
 from perspective.table.libbinding import t_dtype
-import pandas
 
 
 def _type_to_format(data_or_schema):
@@ -129,6 +130,10 @@ class _PerspectiveAccessor(object):
             object or None
         '''
         column_name = self._names[cidx]
+        if self._format == 1 and isinstance(self._data_or_schema[column_name], np.ndarray):
+            # copy numpy in bulk
+            return self._data_or_schema[column_name]
+
         val = self.get(column_name, ridx)
 
         if val is None:

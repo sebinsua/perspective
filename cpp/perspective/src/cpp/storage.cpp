@@ -13,8 +13,6 @@ SUPPRESS_WARNINGS_VC(4505)
 #include <stdlib.h>
 #include <assert.h>
 #include <csignal>
-#include <csignal>
-#include <iostream>
 #include <iostream>
 #include <map>
 #include <perspective/base.h>

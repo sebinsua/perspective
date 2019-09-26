@@ -450,6 +450,22 @@ _fill_col_numeric(t_data_accessor accessor, t_data_table& tbl,
     }
 }
 
+
+void
+_fill_col_numpy(t_data_table& tbl,
+    std::shared_ptr<t_column> col,
+    std::string name,
+    std::int32_t cidx,
+    t_dtype type,
+    bool is_update,
+    t_val sample) {
+    auto array = sample.cast<py::array>();
+    t_uindex nrows = col->size();
+    for (auto i = 0; i < nrows; ++i) {
+        col->set_nth(i, array.data(i));
+    }
+}
+
 /*
 void
 add_computed_column(std::shared_ptr<t_data_table> table, const std::vector<t_uindex>& row_indices, t_val computed_def) {
@@ -466,6 +482,16 @@ void
 _fill_data_helper(t_data_accessor accessor, t_data_table& tbl,
     std::shared_ptr<t_column> col, std::string name, std::int32_t cidx, t_dtype type,
     bool is_arrow, bool is_update) {
+
+    // sample first element
+    t_val sample = accessor.attr("marshal")(cidx, 0, type);
+
+    // if numpy array, match in bulk
+    if(py::isinstance<py::array>(sample)) {
+        _fill_col_numpy(tbl, col, name, cidx, type, is_update, sample);
+        return;
+    }
+
     switch (type) {
         case DTYPE_INT64: {
             _fill_col_int64(accessor, tbl, col, name, cidx, type, is_arrow, is_update);
