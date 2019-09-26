@@ -38,6 +38,12 @@ function (psp_build_dep name cmake_file)
 			EXCLUDE_FROM_ALL)
 
 		include_directories(${CMAKE_BINARY_DIR}/arrow-src/cpp/src/)
+	# elseif(${name} STREQUAL flatbuffers)
+	# 	configure_file(${CMAKE_SOURCE_DIR}/../../cmake/flatbuffers/CMakeLists.txt ${CMAKE_BINARY_DIR}/flatbuffers-src/ COPYONLY)
+	# 	add_subdirectory(${CMAKE_BINARY_DIR}/flatbuffers-src/
+	# 		${CMAKE_BINARY_DIR}/flatbuffers-build
+	# 		EXCLUDE_FROM_ALL)
+	# 	include_directories(${CMAKE_BINARY_DIR}/flatbuffers-src/include/)
 	else()
 		add_subdirectory(${CMAKE_BINARY_DIR}/${name}-src
 			${CMAKE_BINARY_DIR}/${name}-build
@@ -165,8 +171,8 @@ if (PSP_WASM_BUILD)
 	set(CMAKE_RANLIB emranlib)
 	set(CMAKE_EXECUTABLE_SUFFIX ".js")
 	list(APPEND CMAKE_PREFIX_PATH /usr/local)
-	include_directories("/usr/local/include")
-	include_directories("/Users/r599507/homebrew/include")
+	include_directories("/usr/local/include" SYSTEM)
+	# include_directories("/Users/r599507/homebrew/include")
 	include_directories("/boost_includes")
 
 	set(EXTENDED_FLAGS " \
@@ -298,12 +304,18 @@ endif()
 psp_build_dep("hopscotch" "../../cmake/hopscotch.txt.in")
 psp_build_dep("ordered-map" "../../cmake/ordered-map.txt.in")
 psp_build_dep("double-conversion" "../../cmake/double-conversion.txt.in")
-psp_build_dep("flatbuffers" "../../cmake/flatbuffers.txt.in")
+# psp_build_dep("flatbuffers" "../../cmake/flatbuffers.txt.in")
 psp_build_dep("arrow" "../../cmake/arrow.txt.in")
-
 
 #####################
 
+find_package(Flatbuffers)
+if(NOT FLATBUFFERS_FOUND)
+	message(FATAL_ERROR"${Red}Flatbuffers could not be located${ColorReset}")
+else()
+	message("${Cyan}Found Flatbuffers in ${FLATBUFFERS_INCLUDE_DIRS}${ColorReset}")
+	include_directories( ${FLATBUFFERS_INCLUDE_DIRS} )
+endif()
 
 set(CMAKE_C_FLAGS " \
 	${CMAKE_C_FLAGS} \
@@ -414,7 +426,6 @@ if (PSP_WASM_BUILD)
 	target_compile_definitions(psp PRIVATE PSP_ENABLE_WASM=1)
 	set_target_properties(psp PROPERTIES COMPILE_FLAGS "${ASYNC_MODE_FLAGS}")
 	target_link_libraries(psp arrow)
-	target_link_libraries(psp flatbuffers)
 
 	add_executable(perspective.async src/cpp/emscripten.cpp)
 	target_link_libraries(perspective.async psp "${ASYNC_MODE_FLAGS}")
