@@ -15,14 +15,6 @@ import {extract_map, fill_vector} from "./emscripten.js";
 import {bindall, get_column_type} from "./utils.js";
 import {Server} from "./api/server.js";
 
-import {Precision} from "@apache-arrow/es5-esm/enum";
-import {Table} from "@apache-arrow/es5-esm/table";
-import {Visitor} from "@apache-arrow/es5-esm/visitor";
-import {Data} from "@apache-arrow/es5-esm/data";
-import {Vector} from "@apache-arrow/es5-esm/vector";
-
-import {Utf8, Uint32, Float64, Int32, Bool, TimestampSecond, Dictionary} from "@apache-arrow/es5-esm/type";
-
 import formatters from "./view_formatters";
 import papaparse from "papaparse";
 
@@ -86,13 +78,7 @@ export default function(Module) {
      * @returns {Table} An `std::shared_ptr<Table>` to a `Table` inside C++.
      */
     function make_table(accessor, _Table, computed, index, limit, op, is_update, is_arrow) {
-        if (is_arrow) {
-            for (let chunk of accessor) {
-                _Table = __MODULE__.make_table(_Table, chunk, computed, limit || 4294967295, index, op, is_update, is_arrow);
-            }
-        } else {
-            _Table = __MODULE__.make_table(_Table, accessor, computed, limit || 4294967295, index, op, is_update, is_arrow);
-        }
+        _Table = __MODULE__.make_table(_Table, accessor, computed, limit || 4294967295, index, op, is_update, is_arrow);
 
         const pool = _Table.get_pool();
         const table_id = _Table.get_id();
@@ -137,82 +123,6 @@ export default function(Module) {
             });
         }
         return chunks;
-    }
-
-    /**
-     *
-     * @private
-     */
-    class ArrowColumnLoader extends Visitor {
-        constructor(cdata, names, types) {
-            super();
-            this.cdata = cdata || [];
-            this.names = names || [];
-            this.types = types || [];
-        }
-        loadColumn(field /*: Arrow.type.Field*/, column /*: Arrow.Vector*/) {
-            if (this.visit(field.type)) {
-                this.cdata.push(column);
-                this.names.push(field.name);
-            }
-            return this;
-        }
-        // visitNull(type/*: Arrow.type.Null*/) {}
-        visitBool(/* type: Arrow.type.Bool */) {
-            this.types.push(__MODULE__.t_dtype.DTYPE_BOOL);
-            return true;
-        }
-        visitInt(type /* : Arrow.type.Int */) {
-            const bitWidth = type.bitWidth;
-            if (bitWidth === 64) {
-                this.types.push(__MODULE__.t_dtype.DTYPE_INT64);
-            } else if (bitWidth === 32) {
-                this.types.push(__MODULE__.t_dtype.DTYPE_INT32);
-            } else if (bitWidth === 16) {
-                this.types.push(__MODULE__.t_dtype.DTYPE_INT16);
-            } else if (bitWidth === 8) {
-                this.types.push(__MODULE__.t_dtype.DTYPE_INT8);
-            }
-            return true;
-        }
-        visitFloat(type /* : Arrow.type.Float */) {
-            const precision = type.precision;
-            if (precision === Precision.DOUBLE) {
-                this.types.push(__MODULE__.t_dtype.DTYPE_FLOAT64);
-            } else if (precision === Precision.SINGLE) {
-                this.types.push(__MODULE__.t_dtype.DTYPE_FLOAT32);
-            }
-            // todo?
-            // else if (type.precision === Arrow.enum_.Precision.HALF) {
-            //     this.types.push(__MODULE__.t_dtype.DTYPE_FLOAT16);
-            // }
-            return true;
-        }
-        visitUtf8(/* type: Arrow.type.Utf8 */) {
-            this.types.push(__MODULE__.t_dtype.DTYPE_STR);
-            return true;
-        }
-        visitBinary(/* type: Arrow.type.Binary */) {
-            this.types.push(__MODULE__.t_dtype.DTYPE_STR);
-            return true;
-        }
-        // visitFixedSizeBinary(type/*: Arrow.type.FixedSizeBinary*/) {}
-        // visitDate(type/*: Arrow.type.Date_*/) {}
-        visitTimestamp(/* type: Arrow.type.Timestamp */) {
-            this.types.push(__MODULE__.t_dtype.DTYPE_TIME);
-            return true;
-        }
-        // visitTime(type/*: Arrow.type.Time*/) {}
-        // visitDecimal(type/*: Arrow.type.Decimal*/) {}
-        // visitList(type/*: Arrow.type.List*/) {}
-        // visitStruct(type/*: Arrow.type.Struct*/) {}
-        // visitUnion(type/*: Arrow.type.Union<any>*/) {}
-        visitDictionary(type /*: Arrow.type.Dictionary */) {
-            return this.visit(type.dictionary);
-        }
-        // visitInterval(type/*: Arrow.type.Interval*/) {}
-        // visitFixedSizeList(type/*: Arrow.type.FixedSizeList*/) {}
-        // visitMap(type/*: Arrow.type.Map_*/) {}
     }
 
     /******************************************************************************
@@ -1477,7 +1387,7 @@ export default function(Module) {
             let overridden_types = {};
 
             if (data instanceof ArrayBuffer || (Buffer && data instanceof Buffer)) {
-                data_accessor = load_arrow_buffer(data);
+                data_accessor = new Uint8Array(data);
                 is_arrow = true;
             } else {
                 if (typeof data === "string") {

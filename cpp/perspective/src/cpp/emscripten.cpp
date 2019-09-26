@@ -13,6 +13,8 @@ using namespace emscripten;
 using namespace perspective;
 
 #include <arrow/api.h>
+#include <arrow/io/memory.h>
+#include <arrow/ipc/reader.h>
 
 using arrow::DoubleBuilder;
 using arrow::Int64Builder;
@@ -1441,7 +1443,35 @@ namespace binding {
 
         // Determine metadata
         bool is_delete = op == OP_DELETE;
-        if (is_arrow || (is_update || is_delete)) {
+        if (is_arrow) {
+    
+        //     template <>
+        // void
+        // vecFromTypedArray(
+        //     const t_val& typedArray, void* data, std::int32_t length, const char* destType) {
+            std::int32_t length = accessor["length"].as<std::int32_t>();
+            std::cout << length << std::endl;
+            std::vector<unsigned char> data;
+            data.reserve(length);
+            data.resize(length);
+            
+            t_val constructor = accessor["constructor"];
+            t_val memory = t_val::module_property("HEAP8")["buffer"];
+            std::uintptr_t ptr = reinterpret_cast<std::uintptr_t>(data.data());
+            t_val memoryView = constructor.new_(memory, ptr, length);
+            t_val slice = accessor.call<t_val>("slice", 0, length);
+            memoryView.call<void>("set", slice);
+            ::arrow::io::BufferReader buffer_reader(reinterpret_cast<const std::uint8_t*>(data.data()), length);
+            std::shared_ptr<::arrow::ipc::RecordBatchFileReader> batch_reader;
+            auto status = ::arrow::ipc::RecordBatchFileReader::Open(&buffer_reader, &batch_reader);
+            if (!status.ok()) {
+                std::cout << "FUCK" << status.message() << std::endl;
+            }
+            std::cout << "Test: " << buffer_reader.supports_zero_copy() << std::endl;
+            std::cout << "Test2: " << batch_reader->num_record_batches() << std::endl;
+        //}
+        
+        } else if (is_update || is_delete) {
             t_val names = accessor["names"];
             t_val types = accessor["types"];
             column_names = vecFromArray<t_val, std::string>(names);
@@ -1838,17 +1868,17 @@ using namespace perspective::binding;
  */
 int
 main(int argc, char** argv) {
-    // clang-format off
-  std::vector<data_row> rows = {
-      {1, 1.0, {1.0}}, {2, 2.0, {1.0, 2.0}}, {3, 3.0, {1.0, 2.0, 3.0}}};
+     // clang-format off
+//   std::vector<data_row> rows = {
+//       {1, 1.0, {1.0}}, {2, 2.0, {1.0, 2.0}}, {3, 3.0, {1.0, 2.0, 3.0}}};
 
-  std::shared_ptr<::arrow::Table> table;
-  VectorToColumnarTable(rows, &table);
+//   std::shared_ptr<::arrow::Table> table;
+//   VectorToColumnarTable(rows, &table);
 
-  std::vector<data_row> expected_rows;
-  ColumnarTableToVector(table, &expected_rows);
+//   std::vector<data_row> expected_rows;
+//   ColumnarTableToVector(table, &expected_rows);
 
-  std::cout << rows.size() << " " << expected_rows.size() << std::endl;
+//   std::cout << rows.size() << " " << expected_rows.size() << std::endl;
 
 
 EM_ASM({

@@ -179,6 +179,7 @@ if (PSP_WASM_BUILD)
 		-s MODULARIZE=1 \
 		-s EXPORT_NAME=\"load_perspective\" \
 		-s EXPORT_ES6=1 \
+		-s USE_ES6_IMPORT_META=0 \
 		-s EXPORTED_FUNCTIONS=\"['_main']\" \
 		")
 
@@ -297,6 +298,7 @@ endif()
 psp_build_dep("hopscotch" "../../cmake/hopscotch.txt.in")
 psp_build_dep("ordered-map" "../../cmake/ordered-map.txt.in")
 psp_build_dep("double-conversion" "../../cmake/double-conversion.txt.in")
+psp_build_dep("flatbuffers" "../../cmake/flatbuffers.txt.in")
 psp_build_dep("arrow" "../../cmake/arrow.txt.in")
 
 
@@ -412,6 +414,7 @@ if (PSP_WASM_BUILD)
 	target_compile_definitions(psp PRIVATE PSP_ENABLE_WASM=1)
 	set_target_properties(psp PROPERTIES COMPILE_FLAGS "${ASYNC_MODE_FLAGS}")
 	target_link_libraries(psp arrow)
+	target_link_libraries(psp flatbuffers)
 
 	add_executable(perspective.async src/cpp/emscripten.cpp)
 	target_link_libraries(perspective.async psp "${ASYNC_MODE_FLAGS}")
