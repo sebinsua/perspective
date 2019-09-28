@@ -77,8 +77,6 @@ set(ARROW_SRCS
     src/arrow/ipc/reader.cc
     src/arrow/ipc/writer.cc)
 
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}")
-
 set_property(SOURCE util/io_util.cc
            APPEND_STRING
            PROPERTY COMPILE_FLAGS " -Wno-unused-macros -stdlib=libc++")
@@ -111,13 +109,7 @@ set(CMAKE_POSITION_INDEPENDENT_CODE OFF)
 add_library(arrow STATIC ${ARROW_SRCS})
 target_compile_definitions(arrow PUBLIC ARROW_NO_DEPRECATED_API)
 target_compile_definitions(arrow PUBLIC ARROW_STATIC)
-target_compile_definitions(arrow PUBLIC ARROW_NO_DEPRECATED_API=1)
-target_compile_definitions(arrow PUBLIC ARROW_EXTRA_ERROR_CONTEXT=1)
-target_compile_definitions(arrow PUBLIC ARROW_STATIC=1)
-target_compile_definitions(arrow PUBLIC __clang__)
-target_compile_definitions(arrow PUBLIC __cplusplus=201402L)
-target_compile_definitions(arrow PUBLIC FLATBUFFERS_HAS_NEW_STRTOD=1)
-target_compile_definitions(arrow PUBLIC FLATBUFFERS_MEMORY_LEAK_TRACKING=1)
+
 target_link_libraries(arrow
     ${double-conversion_LIBRARIES}
     ${BOOST_FILESYSTEM_LIBRARY}
