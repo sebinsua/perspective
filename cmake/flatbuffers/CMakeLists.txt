@@ -1,5 +1,5 @@
 set(CMAKE_SHARED_LIBRARY_SUFFIX .so)
-set(FLATBUFFERS_LOCALE_INDEPENDENT 0)
+set(FLATBUFFERS_LOCALE_INDEPENDENT 1)
 
 add_definitions(-DFLATBUFFERS_LOCALE_INDEPENDENT=$<BOOL:${FLATBUFFERS_LOCALE_INDEPENDENT}>)
 
@@ -50,8 +50,8 @@ set(FlatBuffers_Compiler_SRCS
   grpc/src/compiler/java_generator.cc
 )
 
-set(CMAKE_POSITION_INDEPENDENT_CODE ON)
-set(FLATBUFFERS_PRIVATE_CXX_FLAGS -fsigned-char -fno-omit-frame-pointer -stdlib=libc++ -lc++abi)
+set(CMAKE_POSITION_INDEPENDENT_CODE OFF)
+set(FLATBUFFERS_PRIVATE_CXX_FLAGS -fsigned-char -stdlib=libc++ -lc++abi)
 # set(CMAKE_CXX_FLAGS
 #   "${CMAKE_CXX_FLAGS} -faligned-new -Werror=implicit-fallthrough=2")
 
