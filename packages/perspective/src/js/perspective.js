@@ -92,38 +92,38 @@ export default function(Module) {
         return _Table;
     }
 
-    /**
-     * Converts arrow data into a canonical representation for
-     * interfacing with perspective.
-     *
-     * @private
-     * @param {object} data Array buffer
-     * @returns {Array<Object>} An array containing chunked data objects with five properties:
-     * row_count: the number of rows in the chunk
-     * is_arrow: internal flag for marking arrow data
-     * names: column names for the arrow data
-     * types: type mapping for each column
-     * cdata: the actual data we load
-     */
-    function load_arrow_buffer(data) {
-        // TODO Need to validate that the names/types passed in match those in the buffer
-        let arrow = Table.from([new Uint8Array(data)]);
-        let loader = arrow.schema.fields.reduce((loader, field, colIdx) => {
-            return loader.loadColumn(field, arrow.getColumnAt(colIdx));
-        }, new ArrowColumnLoader());
-        let nchunks = loader.cdata[0].chunks.length;
-        let chunks = [];
-        for (let x = 0; x < nchunks; x++) {
-            chunks.push({
-                row_count: loader.cdata[0].chunks[x].length,
-                is_arrow: true,
-                names: loader.names,
-                types: loader.types,
-                cdata: loader.cdata.map(y => y.chunks[x])
-            });
-        }
-        return chunks;
-    }
+    // /**
+    //  * Converts arrow data into a canonical representation for
+    //  * interfacing with perspective.
+    //  *
+    //  * @private
+    //  * @param {object} data Array buffer
+    //  * @returns {Array<Object>} An array containing chunked data objects with five properties:
+    //  * row_count: the number of rows in the chunk
+    //  * is_arrow: internal flag for marking arrow data
+    //  * names: column names for the arrow data
+    //  * types: type mapping for each column
+    //  * cdata: the actual data we load
+    //  */
+    // function load_arrow_buffer(data) {
+    //     // TODO Need to validate that the names/types passed in match those in the buffer
+    //     let arrow = Table.from([new Uint8Array(data)]);
+    //     let loader = arrow.schema.fields.reduce((loader, field, colIdx) => {
+    //         return loader.loadColumn(field, arrow.getColumnAt(colIdx));
+    //     }, new ArrowColumnLoader());
+    //     let nchunks = loader.cdata[0].chunks.length;
+    //     let chunks = [];
+    //     for (let x = 0; x < nchunks; x++) {
+    //         chunks.push({
+    //             row_count: loader.cdata[0].chunks[x].length,
+    //             is_arrow: true,
+    //             names: loader.names,
+    //             types: loader.types,
+    //             cdata: loader.cdata.map(y => y.chunks[x])
+    //         });
+    //     }
+    //     return chunks;
+    // }
 
     /******************************************************************************
      *

@@ -70,7 +70,6 @@ option(PSP_PYTHON_BUILD "Build the Python Bindings" OFF)
 option(PSP_CPP_BUILD_STRICT "Build the C++ with strict warnings" OFF)
 option(PSP_BUILD_DOCS "Build the Perspective documentation" OFF)
 
-
 if (NOT DEFINED PSP_WASM_BUILD)
 	set(PSP_WASM_BUILD ON)
 	set(PSP_CPP_BUILD OFF)
@@ -195,6 +194,10 @@ if (PSP_WASM_BUILD)
 			-g4 \
 			--profiling \
 			-s SAFE_HEAP=1 \
+			-s WARN_UNALIGNED=1 \
+			-Wcast-align \
+			-Wover-aligned \
+			-s SAFE_HEAP_LOG=1 \
 			-s DISABLE_EXCEPTION_CATCHING=0 \
 			-s ASSERTIONS=2 \
 			-s DEMANGLE_SUPPORT=1 \
@@ -327,6 +330,7 @@ set (SOURCE_FILES
 	src/cpp/aggregate.cpp
 	src/cpp/aggspec.cpp
 	src/cpp/arg_sort.cpp
+	src/cpp/arrow.cpp
 	src/cpp/base.cpp
 	src/cpp/base_impl_linux.cpp
 	src/cpp/base_impl_osx.cpp

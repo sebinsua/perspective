@@ -81,7 +81,7 @@ namespace binding {
     T scalar_vec_to(const std::vector<t_tscalar>& scalars, std::uint32_t idx);
 
     /**
-     * @brief namespace `arrow` contains utilities for writing data in the Apache arrow format.
+     * @brief namespace `arraybuffer` contains utilities for writing data in the Apache arrow format.
      *
      * Implementations of these methods access underlying heap memory and create contiguous
      * blocks of data which conform to the arrow schema; these methods should not be used to
@@ -89,7 +89,7 @@ namespace binding {
      * parsing and manipulation should be implemented in the binding language, using appropriate
      * libraries.
      */
-    namespace arrow {
+    namespace arraybuffer {
 
         template <typename T>
         void vecFromTypedArray(const T& typedArray, void* data, std::int32_t length,
